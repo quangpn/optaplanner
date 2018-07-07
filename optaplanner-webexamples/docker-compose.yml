@@ -7,3 +7,6 @@ services:
             dockerfile: docker-dir/Dockerfile
         ports:
             - "8080:8080"
+            - "9990:9990"
+        volumes:
+            - ./data:/data

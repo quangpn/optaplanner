@@ -59,7 +59,7 @@
 
   loadSolution = function() {
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution?<%= request.getQueryString() %>",
       type: "GET",
       dataType : "json",
       success: function(solution) {
@@ -81,7 +81,7 @@
 
   updateSolution = function() {
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution?<%= request.getQueryString() %>",
       type: "GET",
       dataType : "json",
       success: function(solution) {
@@ -106,7 +106,7 @@
   solve = function() {
     $('#solveButton').attr("disabled", "disabled");
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/solve",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/solve?<%= request.getQueryString() %>",
       type: "POST",
       dataType : "json",
       data : "",
@@ -124,7 +124,7 @@
     $('#terminateEarlyButton').attr("disabled", "disabled");
     window.clearInterval(intervalTimer);
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/terminateEarly",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/terminateEarly?<%= request.getQueryString() %>",
       type: "POST",
       data : "",
       dataType : "json",

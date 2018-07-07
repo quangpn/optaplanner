@@ -16,7 +16,9 @@
 
 package org.optaplanner.webexamples.vehiclerouting.rest.cdi;
 
+import java.io.File;
 import java.io.Serializable;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,46 +68,56 @@ public class VehicleRoutingSolverManager implements Serializable {
         executor.shutdown();
     }
 
-    public synchronized VehicleRoutingSolution retrieveOrCreateSolution(String sessionId) {
-        VehicleRoutingSolution solution = sessionSolutionMap.get(sessionId);
+    public synchronized VehicleRoutingSolution retrieveOrCreateSolution(String key, String vrpFile) {
+        VehicleRoutingSolution solution = sessionSolutionMap.get(key);
         if (solution == null) {
-            URL unsolvedSolutionURL = getClass().getResource(IMPORT_DATASET);
+            String fileName = "/data/belgium-road-time-n50-k10.vrp";
+            if (vrpFile != null && !vrpFile.equals("")) {
+                fileName = "/data/" + vrpFile;
+            }
+            File file = new File(fileName);
+            URL unsolvedSolutionURL = null;
+            try {
+                unsolvedSolutionURL = file.toURI().toURL();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
             if (unsolvedSolutionURL == null) {
                 throw new IllegalArgumentException("The IMPORT_DATASET (" + IMPORT_DATASET
                         + ") is not a valid classpath resource.");
             }
-            solution = (VehicleRoutingSolution) new VehicleRoutingImporter()
+            solution = new VehicleRoutingImporter()
                     .readSolution(unsolvedSolutionURL);
-            sessionSolutionMap.put(sessionId, solution);
+            sessionSolutionMap.put(key, solution);
         }
         return solution;
     }
 
-    public synchronized boolean solve(final String sessionId) {
+    public synchronized boolean solve(final String key, String vrpFile) {
         final Solver<VehicleRoutingSolution> solver = solverFactory.buildSolver();
         solver.addEventListener(event -> {
             VehicleRoutingSolution bestSolution = event.getNewBestSolution();
             synchronized (VehicleRoutingSolverManager.this) {
-                sessionSolutionMap.put(sessionId, bestSolution);
+                sessionSolutionMap.put(key, bestSolution);
             }
         });
-        if (sessionSolverMap.containsKey(sessionId)) {
+        if (sessionSolverMap.containsKey(key)) {
             return false;
         }
-        sessionSolverMap.put(sessionId, solver);
-        final VehicleRoutingSolution solution = retrieveOrCreateSolution(sessionId);
+        sessionSolverMap.put(key, solver);
+        final VehicleRoutingSolution solution = retrieveOrCreateSolution(key, vrpFile);
         executor.submit((Runnable) () -> {
             VehicleRoutingSolution bestSolution = solver.solve(solution);
             synchronized (VehicleRoutingSolverManager.this) {
-                sessionSolutionMap.put(sessionId, bestSolution);
-                sessionSolverMap.remove(sessionId);
+                sessionSolutionMap.put(key, bestSolution);
+                sessionSolverMap.remove(key);
             }
         });
         return true;
     }
 
-    public synchronized boolean terminateEarly(String sessionId) {
-        Solver<VehicleRoutingSolution> solver = sessionSolverMap.remove(sessionId);
+    public synchronized boolean terminateEarly(String key) {
+        Solver<VehicleRoutingSolution> solver = sessionSolverMap.remove(key);
         if (solver != null) {
             solver.terminateEarly();
             return true;
