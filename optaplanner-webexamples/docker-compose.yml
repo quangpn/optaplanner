@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker-dir/Dockerfile
+        ports:
+            - "8080:8080"
