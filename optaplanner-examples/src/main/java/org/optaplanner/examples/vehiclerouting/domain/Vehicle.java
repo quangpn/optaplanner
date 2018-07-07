@@ -17,17 +17,28 @@
 package org.optaplanner.examples.vehiclerouting.domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.optaplanner.core.api.domain.variable.CustomShadowVariable;
+import org.optaplanner.core.api.domain.variable.PlanningVariableReference;
 import org.optaplanner.examples.common.domain.AbstractPersistable;
 import org.optaplanner.examples.vehiclerouting.domain.location.Location;
+import org.optaplanner.examples.vehiclerouting.domain.timewindowed.solver.VehicleCapacityReuseVariableListener;
 
 @XStreamAlias("VrpVehicle")
 public class Vehicle extends AbstractPersistable implements Standstill {
 
     protected int capacity;
     protected Depot depot;
+    protected Integer minReturnToDepotTime;
+    protected Integer maxReturnToDepotTime;
 
     // Shadow variables
     protected Customer nextCustomer;
+
+    @CustomShadowVariable(variableListenerClass = VehicleCapacityReuseVariableListener.class,
+            sources = {@PlanningVariableReference(entityClass = Customer.class, variableName = "previousStandstill" )})
+    protected Integer currentDemand;
+
+    protected Long returnToDepotTime;
 
     public int getCapacity() {
         return capacity;
@@ -84,6 +95,39 @@ public class Vehicle extends AbstractPersistable implements Standstill {
             return super.toString();
         }
         return location.getName() + "/" + super.toString();
+    }
+
+    public Integer getCurrentDemand() {
+        return currentDemand;
+    }
+
+    public void setCurrentDemand(Integer currentDemand) {
+        this.currentDemand = currentDemand;
+        System.out.println("----------------" + currentDemand);
+    }
+
+    public Long getReturnToDepotTime() {
+        return returnToDepotTime;
+    }
+
+    public void setReturnToDepotTime(Long returnToDepotTime) {
+        this.returnToDepotTime = returnToDepotTime;
+    }
+
+    public Integer getMinReturnToDepotTime() {
+        return minReturnToDepotTime;
+    }
+
+    public void setMinReturnToDepotTime(Integer minReturnToDepotTime) {
+        this.minReturnToDepotTime = minReturnToDepotTime;
+    }
+
+    public Integer getMaxReturnToDepotTime() {
+        return maxReturnToDepotTime;
+    }
+
+    public void setMaxReturnToDepotTime(Integer maxReturnToDepotTime) {
+        this.maxReturnToDepotTime = maxReturnToDepotTime;
     }
 
 }

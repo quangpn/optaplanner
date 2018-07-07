@@ -82,3 +82,16 @@ rule "arrivalAfterDueTime"
 end
 
 // Score constraint arrivalAfterDueTimeAtDepot is a built-in hard constraint in VehicleRoutingImporter
+
+rule "arrivalAfterDueTimeAtDepot"
+    when
+        $customer : TimeWindowedCustomer(previousStandstill != null)
+        not TimeWindowedCustomer(previousStandstill == $customer)
+    then
+        Vehicle vehicle = $customer.getVehicle();
+        long maximumArrivalTime = vehicle.getReturnToDepotTime() - $customer.getServiceDuration() - $customer.getDistanceTo(vehicle);
+        if ($customer.getArrivalTime() > maximumArrivalTime) {
+            scoreHolder.addHardConstraintMatch(kcontext, maximumArrivalTime - $customer.getArrivalTime());
+        }
+end
+

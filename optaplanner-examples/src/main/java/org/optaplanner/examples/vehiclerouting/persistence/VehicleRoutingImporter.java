@@ -16,14 +16,6 @@
 
 package org.optaplanner.examples.vehiclerouting.persistence;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
 import org.optaplanner.examples.common.persistence.AbstractTxtSolutionImporter;
 import org.optaplanner.examples.common.persistence.SolutionConverter;
 import org.optaplanner.examples.vehiclerouting.app.VehicleRoutingApp;
@@ -34,12 +26,13 @@ import org.optaplanner.examples.vehiclerouting.domain.VehicleRoutingSolution;
 import org.optaplanner.examples.vehiclerouting.domain.location.AirLocation;
 import org.optaplanner.examples.vehiclerouting.domain.location.DistanceType;
 import org.optaplanner.examples.vehiclerouting.domain.location.Location;
-import org.optaplanner.examples.vehiclerouting.domain.location.RoadLocation;
-import org.optaplanner.examples.vehiclerouting.domain.location.segmented.HubSegmentLocation;
-import org.optaplanner.examples.vehiclerouting.domain.location.segmented.RoadSegmentLocation;
 import org.optaplanner.examples.vehiclerouting.domain.timewindowed.TimeWindowedCustomer;
 import org.optaplanner.examples.vehiclerouting.domain.timewindowed.TimeWindowedDepot;
 import org.optaplanner.examples.vehiclerouting.domain.timewindowed.TimeWindowedVehicleRoutingSolution;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleRoutingSolution> {
 
@@ -67,17 +60,14 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
 
         private VehicleRoutingSolution solution;
 
-        private boolean timewindowed;
         private int customerListSize;
         private List<Integer> vehicleListSizes = new ArrayList<>();
         private List<Integer> vehicleCapacities = new ArrayList<>();
-        private Map<Long, Location> locationMap;
         private List<Depot> depotList;
 
         @Override
         public VehicleRoutingSolution readSolution() throws IOException {
             String firstLine = readStringValue();
-            timewindowed = true;
             solution = new TimeWindowedVehicleRoutingSolution();
             solution.setId(0L);
             solution.setName(firstLine);
@@ -98,56 +88,16 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
                     vehicle.setCapacity(capacity);
                     // Round robin the vehicles to a depot if there are multiple depots
                     vehicle.setDepot(depotList.get(j % depotList.size()));
+
+                    long returnDepotTime = ((TimeWindowedDepot) depotList.get(0)).getDueTime();
+//                    if (j % 2 == 0) {
+//                        returnDepotTime = 82800;
+//                    }
+                    vehicle.setReturnToDepotTime(returnDepotTime);
                     vehicleList.add(vehicle);
                 }
             }
             solution.setVehicleList(vehicleList);
-        }
-
-        // ************************************************************************
-        // CVRP coursera format. See https://class.coursera.org/optimization-001/
-        // ************************************************************************
-
-        public void readCourseraFormat() throws IOException {
-            solution.setDistanceType(DistanceType.AIR_DISTANCE);
-            solution.setDistanceUnitOfMeasurement("distance");
-            List<Location> locationList = new ArrayList<>(customerListSize);
-            depotList = new ArrayList<>(1);
-            List<Customer> customerList = new ArrayList<>(customerListSize);
-            locationMap = new LinkedHashMap<>(customerListSize);
-            for (int i = 0; i < customerListSize; i++) {
-                String line = bufferedReader.readLine();
-                String[] lineTokens = splitBySpacesOrTabs(line.trim(), 3, 4);
-                AirLocation location = new AirLocation();
-                location.setId((long) i);
-                location.setLatitude(Double.parseDouble(lineTokens[1]));
-                location.setLongitude(Double.parseDouble(lineTokens[2]));
-                if (lineTokens.length >= 4) {
-                    location.setName(lineTokens[3]);
-                }
-                locationList.add(location);
-                if (i == 0) {
-                    Depot depot = new Depot();
-                    depot.setId((long) i);
-                    depot.setLocation(location);
-                    depotList.add(depot);
-                } else {
-                    Customer customer = new Customer();
-                    customer.setId((long) i);
-                    customer.setLocation(location);
-                    int demand = Integer.parseInt(lineTokens[0]);
-                    customer.setDemand(demand);
-                    // Notice that we leave the PlanningVariable properties on null
-                    // Do not add a customer that has no demand
-                    if (demand != 0) {
-                        customerList.add(customer);
-                    }
-                }
-            }
-            solution.setLocationList(locationList);
-            solution.setDepotList(depotList);
-            solution.setCustomerList(customerList);
-            createVehicleList();
         }
 
         // ************************************************************************
@@ -225,14 +175,14 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
                     customer.setDemand(demand);
                     customer.setReadyTime(readyTime);
                     // Score constraint arrivalAfterDueTimeAtDepot is a built-in hard constraint in VehicleRoutingImporter
-                    long maximumDueTime = depot.getDueTime()
-                            - serviceDuration - location.getDistanceTo(depot.getLocation());
-                    if (dueTime > maximumDueTime) {
-                        logger.warn("The customer ({})'s dueTime ({}) was automatically reduced" +
-                                " to maximumDueTime ({}) because of the depot's dueTime ({}).",
-                                customer, dueTime, maximumDueTime, depot.getDueTime());
-                        dueTime = maximumDueTime;
-                    }
+//                    long maximumDueTime = depot.getDueTime()
+//                            - serviceDuration - location.getDistanceTo(depot.getLocation());
+//                    if (dueTime > maximumDueTime) {
+//                        logger.warn("The customer ({})'s dueTime ({}) was automatically reduced" +
+//                                " to maximumDueTime ({}) because of the depot's dueTime ({}).",
+//                                customer, dueTime, maximumDueTime, depot.getDueTime());
+//                        dueTime = maximumDueTime;
+//                    }
                     customer.setDueTime(dueTime);
                     customer.setServiceDuration(serviceDuration);
                     // Notice that we leave the PlanningVariable properties on null
