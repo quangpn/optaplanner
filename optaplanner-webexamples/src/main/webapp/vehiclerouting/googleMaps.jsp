@@ -48,6 +48,7 @@
   var directionsTaskQueue;
   var directionsTaskTimer;
 
+
   function initMap() {
     var mapCanvas = document.getElementById('map-canvas');
     var mapOptions = {
@@ -55,6 +56,7 @@
     };
     map = new google.maps.Map(mapCanvas, mapOptions);
     directionsService = new google.maps.DirectionsService();
+
     loadSolution();
     updateSolution();
   }
@@ -68,7 +70,7 @@
 
   loadSolution = function() {
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution?<%= request.getQueryString() %>",
       type: "GET",
       dataType : "json",
       success: function(solution) {
@@ -94,7 +96,7 @@
 
   updateSolution = function() {
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution?<%= request.getQueryString() %>",
       type: "GET",
       dataType : "json",
       success: function(solution) {
@@ -139,7 +141,7 @@
       directionsTaskTimer = undefined;
     }
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/solve",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/solve?<%= request.getQueryString() %>",
       type: "POST",
       dataType : "json",
       data : "",
@@ -161,7 +163,7 @@
       directionsTaskTimer = undefined;
     }
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/terminateEarly",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution/terminateEarly?<%= request.getQueryString() %>",
       type: "POST",
       data : "",
       dataType : "json",
@@ -176,7 +178,7 @@
 
   resolveDirections = function () {
     $.ajax({
-      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution",
+      url: "<%=application.getContextPath()%>/rest/vehiclerouting/solution?<%= request.getQueryString() %>",
       type: "GET",
       dataType : "json",
       success: function(solution) {

@@ -37,6 +37,7 @@ import org.optaplanner.webexamples.vehiclerouting.rest.domain.JsonMessage;
 import org.optaplanner.webexamples.vehiclerouting.rest.domain.JsonVehicleRoute;
 import org.optaplanner.webexamples.vehiclerouting.rest.domain.JsonVehicleRoutingSolution;
 
+
 public class DefaultVehicleRoutingRestService implements VehicleRoutingRestService {
 
     private static final NumberFormat NUMBER_FORMAT = new DecimalFormat("#,##0.00");
@@ -49,7 +50,10 @@ public class DefaultVehicleRoutingRestService implements VehicleRoutingRestServi
 
     @Override
     public JsonVehicleRoutingSolution getSolution() {
-        VehicleRoutingSolution solution = solverManager.retrieveOrCreateSolution(request.getSession().getId());
+        String queryStr = request.getQueryString();
+        String vrpFile = request.getParameter("vrp");
+
+        VehicleRoutingSolution solution = solverManager.retrieveOrCreateSolution(request.getSession().getId() + queryStr, vrpFile);
         return convertToJsonVehicleRoutingSolution(solution);
     }
 
@@ -98,13 +102,16 @@ public class DefaultVehicleRoutingRestService implements VehicleRoutingRestServi
 
     @Override
     public JsonMessage solve() {
-        boolean success = solverManager.solve(request.getSession().getId());
+        String queryStr = request.getQueryString();
+        String vrpFile = request.getParameter("vrp");
+        boolean success = solverManager.solve(request.getSession().getId() + queryStr, vrpFile);
         return new JsonMessage(success ? "Solving started." : "Solver was already running.");
     }
 
     @Override
     public JsonMessage terminateEarly() {
-        boolean success = solverManager.terminateEarly(request.getSession().getId());
+        String queryStr = request.getQueryString();
+        boolean success = solverManager.terminateEarly(request.getSession().getId() + queryStr);
         return new JsonMessage(success ? "Solver terminating early." : "Solver was already terminated.");
     }
 
