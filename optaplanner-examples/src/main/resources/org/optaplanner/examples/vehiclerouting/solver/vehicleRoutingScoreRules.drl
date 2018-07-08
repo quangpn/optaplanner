@@ -89,9 +89,18 @@ rule "arrivalAfterDueTimeAtDepot"
         not TimeWindowedCustomer(previousStandstill == $customer)
     then
         Vehicle vehicle = $customer.getVehicle();
-        long maximumArrivalTime = vehicle.getReturnToDepotTime() - $customer.getServiceDuration() - $customer.getDistanceTo(vehicle);
-        if ($customer.getArrivalTime() > maximumArrivalTime) {
-            scoreHolder.addHardConstraintMatch(kcontext, maximumArrivalTime - $customer.getArrivalTime());
+        TimeWindowedDepot depot = (TimeWindowedDepot)vehicle.getDepot();
+        long maximumArrivalTime = depot.getDueTime() - $customer.getServiceDuration() - $customer.getDistanceTo(vehicle);
+        long arrivalTime = $customer.getArrivalTime();
+        if (arrivalTime < $customer.getReadyTime()) {
+            arrivalTime = $customer.getReadyTime();
+        }
+        System.out.println("return to depot time:" + depot.getDueTime());
+        System.out.println("customer id:" + $customer.getId());
+        System.out.println("arrival Time:" + arrivalTime);
+        System.out.println("max arrival Time:" + maximumArrivalTime);
+        if (arrivalTime > maximumArrivalTime) {
+            scoreHolder.addHardConstraintMatch(kcontext, maximumArrivalTime - arrivalTime);
         }
 end
 
