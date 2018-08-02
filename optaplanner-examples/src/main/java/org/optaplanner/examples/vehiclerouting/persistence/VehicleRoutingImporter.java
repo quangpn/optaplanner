@@ -89,11 +89,11 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
                     // Round robin the vehicles to a depot if there are multiple depots
                     vehicle.setDepot(depotList.get(j % depotList.size()));
 
-                    long returnDepotTime = ((TimeWindowedDepot) depotList.get(0)).getDueTime();
+//                    long returnDepotTime = ((TimeWindowedDepot) depotList.get(0)).getDueTime();
 //                    if (j % 2 == 0) {
-//                        returnDepotTime = 82800;
+//                        returnDepotTime = 46800;
 //                    }
-                    vehicle.setReturnToDepotTime(returnDepotTime);
+//                    vehicle.setReturnToDepotTime(returnDepotTime);
                     vehicleList.add(vehicle);
                 }
             }
@@ -139,7 +139,7 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
             depotList = new ArrayList<>(1);
             TimeWindowedDepot depot = null;
             List<Customer> customerList = new ArrayList<>(locationListSizeEstimation);
-            boolean first = true;
+            int count = 0;
             while (line != null && !line.trim().isEmpty()) {
                 String[] lineTokens = splitBySpacesOrTabs(line.trim(), 7);
                 long id = Long.parseLong(lineTokens[0]);
@@ -152,7 +152,7 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
                 long readyTime = Long.parseLong(lineTokens[4]) * 1000L;
                 long dueTime = Long.parseLong(lineTokens[5]) * 1000L;
                 long serviceDuration = Long.parseLong(lineTokens[6]) * 1000L;
-                if (first) {
+                if (count < 2) {
                     depot = new TimeWindowedDepot();
                     depot.setId(id);
                     depot.setLocation(location);
@@ -167,7 +167,7 @@ public class VehicleRoutingImporter extends AbstractTxtSolutionImporter<VehicleR
                                 + ") has a serviceDuration (" + serviceDuration + ").");
                     }
                     depotList.add(depot);
-                    first = false;
+                    count++;
                 } else {
                     TimeWindowedCustomer customer = new TimeWindowedCustomer();
                     customer.setId(id);
